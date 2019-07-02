@@ -1,0 +1,21 @@
+$PROJ_DIR$\..\app
+$PROJ_DIR$\..\app\inc
+$PROJ_DIR$\..\Driver
+$PROJ_DIR$\..\..\..\Lib\Chip\inc
+$PROJ_DIR$\..\..\..\Lib\Chip\inc\IAR
+$PROJ_DIR$\..\..\..\Lib\Chip\inc\kinetis
+$PROJ_DIR$\..\..\..\Lib\Chip\src
+$PROJ_DIR$\..\..\..\Lib\Chip\src\IAR
+$PROJ_DIR$\..\..\..\Lib\CMSIS\inc
+$PROJ_DIR$\..\..\..\Lib\CMSIS
+$PROJ_DIR$\..\..\..\Lib\Driver
+$PROJ_DIR$\..\..\..\Lib\fatfs
+$PROJ_DIR$\..\..\..\Lib\icf_files
+
+
+Linker:  $PROJ_DIR$\..\..\..\Lib\icf_files\512KB_Pflash.icf
+
+
+IAR
+ARM_MATH_CM4
+MK60DZ10

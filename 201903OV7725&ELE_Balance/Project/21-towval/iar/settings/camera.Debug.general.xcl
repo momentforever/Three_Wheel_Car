@@ -1,0 +1,15 @@
+"D:\Embedded Workbench 8.2\arm\bin\armproc.dll" 
+
+"D:\Embedded Workbench 8.2\arm\bin\armjlink2.dll" 
+
+"E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\Debug\Exe\mydemo.out" 
+
+--plugin="D:\Embedded Workbench 8.2\arm\bin\armbat.dll" 
+
+--device_macro="D:\Embedded Workbench 8.2\arm\config\debugger\NXP\Kxx.dmac" 
+
+--device_macro="D:\Embedded Workbench 8.2\arm\config\debugger\NXP\Kxx_Trace.dmac" 
+
+
+
+
