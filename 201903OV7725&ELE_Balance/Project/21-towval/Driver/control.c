@@ -16,6 +16,9 @@
 //#define AD5_MIN
 //#define AD6_MIN
 
+#define TURN_ANGLE 0.2
+#define TURN_TIME 80 //转向时间
+
 //角度类变量
 int16  Acc_Z,Gyro_X,Gyro_Y;
 int16  Acc_Max=8192;
@@ -29,8 +32,8 @@ float SpeedControlOutNew;
 float SpeedControlOutOld;
 float SpeedControlIntegral=0,Hill_Slow_Ratio;
 float Set_Angle;   //加速前倾角度
-int   SpeedCount;
-int   Speed_Filter_Times=50;    //速度平滑输出
+int   SpeedCount=1;
+int   Speed_Filter_Times=25;    //速度平滑输出
 float CarSpeed=0,ControlSpeed=0,AverageSpeed,SetSpeed=0.4,Distance;
 //方向类变量
 float DirectionControlOutNew;
@@ -81,11 +84,15 @@ float mycarspeed; //设定速度
 float Dis_Turn_Out;
 float Turn_Out_tmp0,Turn_Out_tmp1,Turn_Out_tmp2;
 
+
+float SpeedError_next;
+
 extern unsigned int leftspeed,rightspeed;
 
 extern uint8 runmode;  //0: 直立跑  1：三轮跑
-//extern uint8 lockrun;  //0:允许改变runmode   1:不允许改变
+extern int time;
 
+int RedSan; //红外，三轮模式
 
 void Get_Attitude()
 {
@@ -142,134 +149,181 @@ void Kalman_Filter(float angle_m,float gyro_m)
 
 //角度计算与滤波
 void Angle_Calculate()
-{
-  float ratio=0.048,ratiot=0.01;;
-  Angle =Acc_Z*180.0/(Acc_Max-Acc_Min) - Set_Angle;
-
+{ 
+  
+  float ratio=0.048;
+  
+  if(runmode==0){//直立
+    Angle =(Acc_Z-Acc_Offset)*180.0/(Acc_Max-Acc_Min) + Set_Angle; 
+  }
+  else if(runmode==1){ //三轮
+    Angle =(Acc_Z-Acc_Offset)*180.0/(Acc_Max-Acc_Min) + 15;
+  }
   Angle_Speed=(Gyro_Y-Gyro_Y_Offset) * ratio;
+ 
   Kalman_Filter(Angle,Angle_Speed);            //调用卡尔曼滤波函数
 }
 //角度控制函数
 void Angle_Control()
 {
-  static float Car_AngleI[10];
-  int i;
-
-  //PID_ANGLE.D = 0.0006;
-
-  if( Car_Angle < 20.0f && Car_Angle > -20.0f )
-  {
-    //PID_ANGLE.D = 0.0025;
-    //PID_SPEED.P=0.25;
-    //PID_SPEED.I=0.02;
-    Car_AngleIntegral -= Car_AngleI[0]/10.0f;
-    for( i=0;i<9;i++ )
-    {
-      Car_AngleI[i]=Car_AngleI[i+1];
-    }
-    Car_AngleI[9]=Car_Angle;
-    Car_AngleIntegral += Car_AngleI[9]/10.0f;
-  }
-  else
-  {
-    Car_AngleIntegral = 0.0f;
-    for( i=0;i<10;i++ )
-    {
-      Car_AngleI[i]=0.0f;
-    }
-  }
-
   PID_ANGLE.pout=PID_ANGLE.P*Car_Angle;
-  PID_ANGLE.iout=PID_ANGLE.I*Car_AngleIntegral;
   PID_ANGLE.dout=PID_ANGLE.D*Angle_Speed;
-
   if(ABS(Angle_Speed)>30&&ABS(Angle_Speed)<80)
   {
-    PID_ANGLE.dout*=(1+(ABS(Angle_Speed)-30.0)/30.0);
+       PID_ANGLE.dout*=(1+(ABS(Angle_Speed)-30.0)/30.0);
   }
   PID_ANGLE.OUT= PID_ANGLE.pout+ PID_ANGLE.dout;
-  
 }
 
 void Get_Speed()                     //5ms执行一次
 {
+  static float Avg_Sp[10],Avg_Sp1[10];
   int qd1_result,qd2_result;
-  //qd1_result = -FTM_QUAD_get(FTM1);
-  //qd2_result = FTM_QUAD_get(FTM2);
-  if(gpio_get(PTE24)==1)
-     qd1_result = leftspeed;
-  else
-     qd1_result = -leftspeed;
-  if(gpio_get(PTE25)==1)
-     qd2_result = - rightspeed;
-  else
-    qd2_result = rightspeed;
+  
+  if(gpio_get(PTE24)==1) {qd1_result = leftspeed;}
+  if(gpio_get(PTE24)!=1) {qd1_result = -leftspeed;}
+  if(gpio_get(PTE25)==1) {qd2_result = - rightspeed;}
+  if(gpio_get(PTE25)!=1) {qd2_result = rightspeed;}
 
   rightspeed=0;
   leftspeed=0;
+ 
+ Avg_Sp[9]=Avg_Sp[8];
+  Avg_Sp[8]=Avg_Sp[7];
+  Avg_Sp[7]=Avg_Sp[6];
+  Avg_Sp[6]=Avg_Sp[5];
+  Avg_Sp[5]=Avg_Sp[4];
+  Avg_Sp[4]=Avg_Sp[3];
+  Avg_Sp[3]=Avg_Sp[2];
+  Avg_Sp[2]=Avg_Sp[1];
+  Avg_Sp[1]=Avg_Sp[0];
+  Avg_Sp[0]=qd1_result;
+  
+  Avg_Sp1[9]=Avg_Sp1[8];
+  Avg_Sp1[8]=Avg_Sp1[7];
+  Avg_Sp1[7]=Avg_Sp1[6];
+  Avg_Sp1[6]=Avg_Sp1[5];
+  Avg_Sp1[5]=Avg_Sp1[4];
+  Avg_Sp1[4]=Avg_Sp1[3];
+  Avg_Sp1[3]=Avg_Sp1[2];
+  Avg_Sp1[2]=Avg_Sp1[1];
+  Avg_Sp1[1]=Avg_Sp1[0];
+  Avg_Sp1[0]=qd2_result;
+  
+   qd1_result=(Avg_Sp[0]+Avg_Sp[1]+Avg_Sp[2]+Avg_Sp[3]+Avg_Sp[4]+Avg_Sp[5]+Avg_Sp[6]+Avg_Sp[7]+Avg_Sp[8]+Avg_Sp[9])/10;
+   qd2_result=(Avg_Sp1[0]+Avg_Sp1[1]+Avg_Sp1[2]+Avg_Sp1[3]+Avg_Sp1[4]+Avg_Sp1[5]+Avg_Sp1[6]+Avg_Sp1[7]+Avg_Sp1[8]+Avg_Sp1[9])/10;
+   
+   Distance+=(qd1_result+qd2_result)/5000.0;  //转化为距离  N/2/500 *0.2 = 
+   CarSpeed=(qd1_result+qd2_result) * 0.05;//*250.0/6100.0;    //求出车速转换为M/S   N/2 /500 * L * T = N/2 /500 *0.2 * 250 = N /1000 * 50 = N * 0.05 
 
-  Distance+=(qd1_result+qd2_result)/6100.0;  //转化为距离
-  CarSpeed=(qd1_result+qd2_result)*250.0/6100.0;    //求出车速转换为M/S
-   if(CarSpeed>3) CarSpeed=3;
+  
 }
 
 //速度控制量计算
 void Speed_Control(void)
 {
-
+     
   static float PreError[20]={0};
-  float  SpeedError ;
-
+  float  SpeedError;//,Speed_temp;
   uint8 i;
-  float  SpeedFilterRatio=0.85;     //速度设定值滤波，防止速度控制变化太剧烈
-
-  //设定速度滤波
-
-
-  //速度滤波，防止因为速度变化过大而车身晃动
-  Speed_temp=SetSpeed;
-
-
+  
+ 
   //if(Starting||Stop)  setspeed=0; //启动的时候把速度置为零
-   SpeedError= SetSpeed - CarSpeed;
-
-
+   SpeedError=SetSpeed-CarSpeed; 
+ 
+   
   //求出最近20个偏差的总和作为积分项
    SpeedControlIntegral=0;
    for(i=0;i<19;i++)
    {
-     PreError[i]=PreError[i+1];
+     PreError[i]=PreError[i+1]; 
      SpeedControlIntegral+=PreError[i];
    }
     PreError[19]=SpeedError;
     SpeedControlIntegral+=PreError[19];
-
+   
   //速度更新
   SpeedControlOutOld=SpeedControlOutNew;
-
+ 
   //防止起步位移
-  if(Starting)
-  {
-   // SpeedControlIntegral=-50*Distance;
-    //SpeedError=0;
-  }
-
-  SpeedControlOutNew=PID_SPEED.P*SpeedError+PID_SPEED.I*SpeedControlIntegral;   //PI控制
-
-  SpeedControlOutNew= SpeedControlOutOld*0.7+SpeedControlOutNew*0.3;
-  Speed_temp = SpeedControlOutNew;
+  
+  SpeedControlOutNew = PID_SPEED.P*SpeedError + PID_SPEED.I*SpeedControlIntegral;   //PI控制
+  
+  
+ // SpeedControlOutNew = SpeedControlOutOld*0.8 + SpeedControlOutNew*0.2;
 }
+
 //速度控制
 void Speed_Control_Output(void)
 {
   float fValue;
-
-  fValue = SpeedControlOutNew - SpeedControlOutOld;
-  PID_SPEED.OUT = fValue * (SpeedCount+1)/Speed_Filter_Times+SpeedControlOutOld;
-  //Speed_temp = fValue;
+  fValue = (SpeedControlOutNew - SpeedControlOutOld);
+  
+  PID_SPEED.OUT =SpeedControlOutNew;
+  
+  //PID_SPEED.OUT = fValue * (SpeedCount)/Speed_Filter_Times+SpeedControlOutOld;
+  
+  if(SpeedCount==25){SpeedCount=1;}
+  else if(SpeedCount<25){SpeedCount=SpeedCount+1;}
+ 
 }
 
-void Direction_ADControl()
+
+void Direction_ADControl_zl()
+{
+  int adc_sum[8],j,zy;
+  float ratiot=0.048;
+  float ADC, ADH;
+  
+  adc_sum[0]=0;
+  adc_sum[1]=0;
+  adc_sum[2]=0;
+  adc_sum[3]=0;
+  
+   for(j=0;j<10;j++)
+  {
+     adc_sum[1]+=adc_once(ADC1_SE4a,ADC_12bit); 
+     adc_sum[3]+=adc_once(ADC1_SE9,ADC_12bit);
+  }
+  AD1_Value = adc_sum[1]/j;//Left
+  AD3_Value = adc_sum[3]/j;//Right
+  
+  AD1_Value=((AD1_Value<AD1_MIN)?AD1_MIN:AD1_Value)>AD1_MAX?AD1_MAX:AD1_Value;
+  AD3_Value=((AD3_Value<AD3_MIN)?AD3_MIN:AD3_Value)>AD3_MAX?AD3_MAX:AD3_Value;
+  
+  AD1_Normalized = (AD1_Value)/(AD1_MAX/100);
+  AD3_Normalized = (AD3_Value)/(AD3_MAX/100);
+  
+  if( AD1_Normalized == 0 && AD3_Normalized == 0 )
+  {
+    AD_Miss = true;
+  }
+  else if( AD1_Normalized > 10 || AD3_Normalized > 10 )
+  {
+    AD_Miss = false;
+  }
+  
+  Turn_Speed=-(Gyro_X-Gyro_X_Offset)*ratiot;
+  
+  ADC=(float)AD3_Value-AD1_Value;
+  ADH=(float)(AD3_Value+AD1_Value);
+  
+  if(runmode==0){zy=1000;}
+  else {zy=500;}
+  AD_Error=(ADC/ADH)*zy;
+  
+  
+  //if( (AD1_Value<4) && ((AD3_Value - AD1_Value) < 450) && ((AD3_Value - AD1_Value) > 350) )  {Middle_Err = -16;}
+  //if( (AD3_Value<4) && ((AD1_Value - AD3_Value) < 450) && ((AD1_Value - AD3_Value) > 350) )  {Middle_Err = 16;}
+  
+  
+  PID_AD_TURN.pout=(PID_AD_TURN.P)*AD_Error;
+  PID_AD_TURN.dout=(PID_AD_TURN.D)*Turn_Speed;
+
+  PID_AD_TURN.OUT= PID_AD_TURN.pout + PID_AD_TURN.dout;
+}
+
+void Direction_ADControl_sl()
 {
   float AD_Turn_P;
   float ratiot=0.048;
@@ -281,9 +335,9 @@ void Direction_ADControl()
   //AD2_Value=((AD2_Value<AD2_MIN)?AD2_MIN:AD2_Value)>AD2_MAX?AD2_MAX:AD2_Value;
   AD3_Value=((AD3_Value<AD3_MIN)?AD3_MIN:AD3_Value)>AD3_MAX?AD3_MAX:AD3_Value;
 
-  AD1_Normalized = 100*(AD1_Value)/AD1_MAX;
+  AD1_Normalized = (AD1_Value)/(AD1_MAX/100);
   //AD2_Normalized = 100*(AD2_Value)/AD2_MAX;
-  AD3_Normalized = 100*(AD3_Value)/AD3_MAX;
+  AD3_Normalized = (AD3_Value)/(AD3_MAX/100);
 
   if( AD1_Normalized == 0 && AD3_Normalized == 0 )
   {
@@ -302,13 +356,13 @@ void Direction_ADControl()
       Dir_Fix = 0;
   }
 
-  Turn_Speed=(Gyro_X-Gyro_X_Offset)*ratiot;
+  Turn_Speed=-(Gyro_X-Gyro_X_Offset)*ratiot;
 
   if( AD1_Normalized > 20 || AD3_Normalized > 20)
   {
     Dir_Fix=2;
     AD_Error=100*(AD3_Normalized-AD1_Normalized)/(AD3_Normalized+AD1_Normalized);
-    AD_Error=AD_Error*(AD_Error*AD_Error/1250.0+2)/10;
+    AD_Error=AD_Error*(AD_Error*AD_Error/1250.0+2)/8;
 
     My_Push_And_Pull(AD_Error_Filter,8,AD_Error);
 
@@ -353,143 +407,81 @@ void Direction_ADControl()
 }
 
 /********************方向控制量计算***************/
-void Direction_Control()
-{
-  float ratio=0.048;
-  static int Calculate_Length=0;
-  Turn_Speed=(Gyro_X-Gyro_X_Offset)*ratio;
 
-//  if(RoadType==0)  //只有在普通赛道和单线上用模糊
-//  {
-//    if(Calculate_Length<8)
-//    {
-//     Calculate_Length++;
-//     Delta_P=0;
-//     Delt_error=0;
-//     Delta_D=0;
-//    }
-//    else
-//    {
-//      Delt_error=-10*Slope_Calculate(0,Calculate_Length,Previous_Error);
-//      Delta_P=Fuzzy( Middle_Err,Delt_error)* Fuzzy_Kp*0.1;
-//      Delta_D=Fuzzy( Middle_Err,Delt_error)* Fuzzy_Kd*0.1;
-//    }
-//  }
-//  else
-//  {
-//    Delta_P=0;
-//    Delta_D=0;
-//    Calculate_Length=0;
-//  }
-
-  PID_TURN.pout=(PID_TURN.P)*Middle_Err;
-  PID_TURN.dout=(PID_TURN.D)*Turn_Speed;
-  Turn_Out= PID_TURN.pout+ PID_TURN.dout;
-  Dis_Turn_Out = Turn_Out;
-  //Turn_Out=Turn_Out_Filter(Turn_Out);         //转动输出滤波
-  Turn_Out_tmp2 = Turn_Out_tmp1;
-  Turn_Out_tmp1 = Turn_Out_tmp0;
-  Turn_Out_tmp0 = Dis_Turn_Out;
-  Turn_Out = Turn_Out_tmp0*0.6 + Turn_Out_tmp1*0.3 + Turn_Out_tmp2*0.1;
-  PID_TURN.OUT=Turn_Out;
-
-}
 
 //电机pwm值输出
-void Moto_Out()
+void Moto_Out_Control()
 {
-  int L_Value,R_Value;
-  static float  Forward_Safe_Angle=35;//前倾的安全角度
-  static int Motor_Abnormal_Cnt=0;    //电机转速异常计数
-  int Backward_Safe_Angle=20;          //后倾的安全角度
+  static float  Forward_Safe_Angle=5;//前倾的安全角度
+  int Backward_Safe_Angle=20;  //后倾的安全角度
   float Sum;
-//#if    0
-//  //速度控制输出限幅
-//  if(PID_SPEED.OUT>PID_ANGLE.P*Forward_Safe_Angle)//如果车子前倾，则车模的速度控制输出为正，反之为负
-//    PID_SPEED.OUT=PID_ANGLE.P*Forward_Safe_Angle;                       //已经倾斜到到安全角度了
-//  if(PID_SPEED.OUT<-PID_ANGLE.P*Backward_Safe_Angle)
-//    PID_SPEED.OUT=-PID_ANGLE.P*Backward_Safe_Angle;
-//
-//  Sum=PID_ANGLE.OUT - PID_SPEED.OUT;
-//
-//  LeftMotorOut = Sum+PID_TURN.OUT;   //计算输出值
-//  RightMotorOut= Sum-PID_TURN.OUT;
-//
-// //正值限幅，防止减速过大
-//#endif
-
+  
   //AD_Miss=false;  //测试直立
   //CarmeraMiss = 1;
   if(runmode==0) //直立跑
   {
     if( CarmeraMiss == 1 && !AD_Miss )   //电磁工作
     {
-      //速度控制输出限幅
-      if(PID_SPEED.OUT>PID_ANGLE.P*Forward_Safe_Angle)//如果车子前倾，则车模的速度控制输出为正，反之为负
-        PID_SPEED.OUT=PID_ANGLE.P*Forward_Safe_Angle;                       //已经倾斜到到安全角度了
-      if(PID_SPEED.OUT<-PID_ANGLE.P*Backward_Safe_Angle)
-        PID_SPEED.OUT=-PID_ANGLE.P*Backward_Safe_Angle;
-
-      Sum=PID_ANGLE.OUT - PID_SPEED.OUT;   //直立 + 速度
-
-      LeftMotorOut = Sum - PID_AD_TURN.OUT;   //丢失了信号，靠电磁
-      RightMotorOut= Sum + PID_AD_TURN.OUT;
+     
+    // if((-0.5<Car_Angle) && (Car_Angle<0))  {Sum=PID_ANGLE.OUT-0.1;} 
+    // else   {Sum=PID_ANGLE.OUT ;} 
+      
+       //  if((-1<Car_Angle) && (Car_Angle<0))  {Sum=PID_ANGLE.OUT-0.07;} 
+        // else if((0<Car_Angle) && (Car_Angle<-0.5))  {Sum=PID_ANGLE.OUT+0.05;} 
+        // else   {Sum=PID_ANGLE.OUT ;} 
+      
+      Sum=PID_ANGLE.OUT + PID_SPEED.OUT;
+      LeftMotorOut =Sum - PID_AD_TURN.OUT;   //丢失了信号，靠电磁
+      RightMotorOut=Sum + PID_AD_TURN.OUT;
     }
-    else if( !CarmeraMiss && !AD_Miss )   //摄像头工作
-    {
-      //速度控制输出限幅
-      if(PID_SPEED.OUT>PID_ANGLE.P*Forward_Safe_Angle)//如果车子前倾，则车模的速度控制输出为正，反之为负
-        PID_SPEED.OUT=PID_ANGLE.P*Forward_Safe_Angle;                       //已经倾斜到到安全角度了
-      if(PID_SPEED.OUT<-PID_ANGLE.P*Backward_Safe_Angle)
-        PID_SPEED.OUT=-PID_ANGLE.P*Backward_Safe_Angle;
-
-      Sum=PID_ANGLE.OUT - PID_SPEED.OUT;  //直立 + 速度
-
-      LeftMotorOut  =  Sum  - PID_TURN.OUT;
-      RightMotorOut =  Sum  + PID_TURN.OUT;
-    }
+   
     else if( AD_Miss == 1 ) //出了赛道,停车
     {
       LeftMotorOut = 0.0f;
       RightMotorOut = 0.0f;
     }
   }
-  else  //runmode=1，三轮跑,不需要直立分量
+  if(runmode==1) //runmode=1，三轮跑,不需要直立分量
   {
     if(CarmeraMiss == 1 && !AD_Miss )   //电磁工作
-    { //速度控制输出限幅
-//      if(PID_SPEED.OUT>PID_ANGLE.P*Forward_Safe_Angle)//如果车子前倾，则车模的速度控制输出为正，反之为负
-//        PID_SPEED.OUT=PID_ANGLE.P*Forward_Safe_Angle;                       //已经倾斜到到安全角度了
-//      if(PID_SPEED.OUT<-PID_ANGLE.P*Backward_Safe_Angle)
-//        PID_SPEED.OUT=-PID_ANGLE.P*Backward_Safe_Angle;
-//
-//      Sum=PID_ANGLE.OUT - PID_SPEED.OUT;
-
-      if(PID_SPEED.OUT>0.6){ PID_SPEED.OUT=0.6;}
-       LeftMotorOut  =   -PID_SPEED.OUT- PID_AD_TURN.OUT +0.1*PID_ANGLE.OUT;  //电磁分量
-       RightMotorOut =   -PID_SPEED.OUT+ PID_AD_TURN.OUT +0.1*PID_ANGLE.OUT;  //电磁分量
-    }
-    else if( !CarmeraMiss && !AD_Miss )   //摄像头工作
-    {
-      LeftMotorOut  =  PID_SPEED.OUT - PID_TURN.OUT ;  //电磁分量
-      RightMotorOut =  PID_SPEED.OUT + PID_TURN.OUT;  //电磁分量
+    { 
+         
+           if(PID_SPEED.OUT<-0.16){ PID_SPEED.OUT=-0.16;}
+           else if(PID_SPEED.OUT>0.16){ PID_SPEED.OUT=0.16;}
+           LeftMotorOut  =   -PID_SPEED.OUT - PID_AD_TURN.OUT + PID_ANGLE.OUT*0.2;  //电磁分量
+           RightMotorOut =   -PID_SPEED.OUT + PID_AD_TURN.OUT + PID_ANGLE.OUT*0.2;  //电磁分
     }
 
       if( AD_Miss == 1 )  //出了赛道
     {
-      LeftMotorOut = 0.0f;
-      RightMotorOut = 0.0f;
+       LeftMotorOut = 0.0f;
+       RightMotorOut = 0.0f;
+      
     }
   }
-
+  
   //////      测试命令    //////////////////////////
 //    LeftMotorOut = PID_ANGLE.OUT;   // 纯直立
 //    RightMotorOut= PID_ANGLE.OUT;
 
    // LeftMotorOut  =  -PID_TURN.OUT;   // 纯转向
    // RightMotorOut =  +PID_TURN.OUT;
+/*
+if(Stop)                                //如果停止则电机不输出
+ {
+      LeftMotorOut = 0.0f;
+      RightMotorOut = 0.0f;
+ }
+*/
 
+}
 
+void Moto_Out()
+{
+  
+  int L_Value,R_Value;
+  static int Motor_Abnormal_Cnt=0;    //电机转速异常计数
+  
 
   if(RightMotorOut>0.99)RightMotorOut=0.99;
   if(RightMotorOut<-0.99)RightMotorOut=-0.99;
@@ -502,8 +494,9 @@ void Moto_Out()
 
 
  /////////////////////保护////////////////////////////
-  if(Car_Angle<-40||Car_Angle>30)             //倒下
+ if(Car_Angle<-10||Car_Angle>30)             //倒下
   {
+    
     if(Stop==false&&RunTime>2)
     {
       Stop=true;
@@ -527,11 +520,7 @@ void Moto_Out()
        Motor_Abnormal_Cnt=0;
     }
  }
- if(Stop)                                //如果停止则电机不输出
- {
-    //  L_Value=0;
-    //R_Value=0;
- }
+ 
 
    if(L_Value>=0) //正转
   {
@@ -614,3 +603,190 @@ float  Middle_Err_Filter(float middle_err)    //中心偏差滤波
   Middle_Err_Fltered=Pre3_Error[0]*0.4+Pre3_Error[1]*0.3+Pre3_Error[2]*0.2+Pre3_Error[3]*0.1;
   return Middle_Err_Fltered;
 }
+
+char Red_Check()
+{
+  int red=0;
+  int j;
+  int SL=1700, ZL=40;
+  for(j=0;j<10;j++){
+    
+    if(runmode){ red=red + adc_once(ADC1_SE5a,ADC_12bit);}
+    else{ } 
+  }
+  red=red/10;
+ // red=(6762/(red-9))-4;
+  RedSan=red;
+  if(runmode){  //三轮
+    if(red>SL) { return 1; }
+    else {return 0;}
+  }
+  else {  //直立
+  
+  }
+} 
+
+char BiZhang()
+{
+
+  int redVlueflag=1800;
+
+  int red,j,flag=0;
+  
+  Get_Speed();
+  
+  while(CarSpeed>0) //判断停车
+  {
+      
+       LeftMotorOut=0.9;
+       RightMotorOut=0.9;
+        Moto_Out();
+        
+        Get_Speed();                                                                                                                                                                                                                   
+  }
+  
+  for(j=0;j<10;j++)
+        {
+             if(runmode){ red=red + adc_once(ADC1_SE5a,ADC_12bit);}
+        }
+        red=red/10;  
+  
+  while(red>redVlueflag)
+  {
+         Direction_ADControl_zl();
+         Get_Speed();
+         if(CarSpeed>0)
+         {
+           
+            RightMotorOut=0.9;//+PID_AD_TURN.OUT;   
+            LeftMotorOut=0.9;// -PID_AD_TURN.OUT;
+         }
+         else
+         {
+            RightMotorOut=0.1+PID_AD_TURN.OUT*0.3;   
+            LeftMotorOut= 0.1-PID_AD_TURN.OUT*0.3;
+         }
+    
+         
+        //RightMotorOut=0.1;
+        //LeftMotorOut=0.1;
+         Moto_Out();
+         
+         for(j=0;j<10;j++)
+        {
+             if(runmode){ red=red + adc_once(ADC1_SE5a,ADC_12bit);}
+        }
+        red=red/10;  
+         
+  }
+  
+   while(red<=redVlueflag)
+   {
+     
+    if(CarSpeed<0)
+    {
+        LeftMotorOut=-0.1;
+        RightMotorOut=-0.1;
+    }
+    else 
+    {
+      break;
+    }
+     
+      for(j=0;j<10;j++)
+        {
+             if(runmode){ red=red + adc_once(ADC1_SE5a,ADC_12bit);}
+        }
+        red=red/10;  
+        Get_Speed();
+   }
+       
+      return 1;
+  
+}
+
+char go_block()
+{
+   static int turn_num=0;
+   switch(turn_num)
+   {
+       case 0: {   //停车
+               go_stop();
+               if(time>=TURN_TIME) { turn_num=1;time=0;}
+               return 1;
+       }
+       case 1: {  //左转
+               left_turn();
+               if(time>=TURN_TIME*1.6){turn_num=2;time=0;}
+                return 1;
+       }
+       case 2: {  //停车
+               go_stop();
+               if(time>=TURN_TIME) { turn_num=3;time=0;}
+               return 1;
+       }
+       case 3: {  //直行
+               go_straight();
+               if(time>=TURN_TIME*12) { turn_num=4;time=0;}
+               return 1;
+       }
+       case 4: {  //停车
+               go_stop();
+               if(time>=TURN_TIME) { turn_num=5;time=0;}
+               return 1;
+       }
+       case 5: {  //右转
+               right_turn();
+               if(time>=TURN_TIME*2.5) { turn_num=6;time=0;}
+               return 1;
+       }
+       case 6: {  //停车
+                go_stop();
+               if(time>=TURN_TIME) { turn_num=7;time=0;}
+               return 1;
+       }
+       case 7: {  //直行
+               go_straight();
+               Direction_ADControl_zl();
+       
+               if((judge_ad()==1)&&(time>=TURN_TIME*7)) { turn_num=8;time=0;}
+               return 1;
+       }
+       case 8: {  //停车
+               go_stop();
+               if(time>=TURN_TIME*2) { turn_num=0;time=0;return 0;}
+              return 1;
+       }
+   }
+   
+  
+}
+
+
+void left_turn(){
+    LeftMotorOut = -TURN_ANGLE;
+    RightMotorOut = TURN_ANGLE;
+}
+
+void right_turn(){
+    LeftMotorOut = TURN_ANGLE;
+    RightMotorOut = -TURN_ANGLE;
+}
+
+void go_straight(){
+    LeftMotorOut =  -0.15;
+    RightMotorOut = -0.15;
+}
+
+void go_stop(){
+  LeftMotorOut=0.0f;
+  RightMotorOut=0.0f;
+}
+
+
+int judge_ad(){
+    if(AD3_Value>=2000) return 1;     //左值大于0
+    else return 0;
+}
+
+

@@ -1,0 +1,28 @@
+if(Car_Angle<-0.6){
+                   Sum=PID_ANGLE.OUT*4;
+                   down_car=2; //当前车子处于过度前倾，回调状态
+                }
+             if((Car_Angle>-0.6) && (down_car==2)){ //前倾回正，进行减速
+                    Sum=PID_ANGLE.OUT-PID_SPEED.OUT;
+                    if(CarSpeed<2){
+                         Zero0++;
+                       }
+                    if(Zero0>10){
+                         down_car=0;
+                         Zero0=0;
+                       }
+                }
+             if((CarSpeed==0) && (down_car==0)){Zero0++;}
+             if((CarSpeed!=0) && (down_car==0)){Zero0=0;}
+             
+             if((Zero0>500) && (down_car==0)){  //车1s不动
+               down_car =1;  //此时车子进入不动调节状态
+               if(Car_Angle>0){ //此时车处于后仰状态
+                         Sum=PID_ANGLE.OUT*3;
+                     }
+               else if(Car_Angle<0){
+                         Sum=PID_ANGLE.OUT;
+                         Zero0=0;
+                         down_car=0;
+                     }
+                 }

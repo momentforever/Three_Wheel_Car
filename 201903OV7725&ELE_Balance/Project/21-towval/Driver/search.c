@@ -314,4 +314,62 @@ else
 
 }
 
+void judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
+{  
+//   摄像头 和 电磁切换 ，如果是纯摄像头，注释这段程序 ////////////////////////////////////////////
+//      判定中间一些行是否全黑，如果全黑切换到电磁    ////////////////////////////////////////
+  uint16 m,n;
+  uint16 sum[5];  //判定中间5行是否为全黑 
+  uint16 sum1[5]; //判定后端5行是否为全黑 
+  uint16 whitenum;
+  
+  static uint16 imgflag=0; // 0  非断路， 1 是短路
+  
+  /* for(n=0;n<5;n++) sum[n]=0;
+  
+  for(n=20;n<25;n++) //图像靠前处判定
+  {  for(m=1;m<10;m++) 
+     { //计算每个字节中白点个数
+       whitenum = ((imgbuff_process[n*10+m]>>7)&0x01)+((imgbuff_process[n*10+m]>>6)&0x01)+((imgbuff_process[n*10+m]>>5)&0x01)+((imgbuff_process[n*10+m]>>4)&0x01)+((imgbuff_process[n*10+m]>>3)&0x01)+((imgbuff_process[n*10+m]>>2)&0x01)+((imgbuff_process[n*10+m]>>1)&0x01)+((imgbuff_process[n*10+m]>>0)&0x01);
+       sum[n-20] = sum[n-20] + whitenum;
+     }
+  }*/
+  
+  for(n=0;n<5;n++) sum1[n]=0;
+  for(n=45;n<50;n++) //图像靠后处判定
+  {  for(m=40;m<50;m++) 
+     {  whitenum = ((imgbuff_process[n*10+m]>>7)&0x01)+((imgbuff_process[n*10+m]>>6)&0x01)+((imgbuff_process[n*10+m]>>5)&0x01)+((imgbuff_process[n*10+m]>>4)&0x01)+((imgbuff_process[n*10+m]>>3)&0x01)+((imgbuff_process[n*10+m]>>2)&0x01)+((imgbuff_process[n*10+m]>>1)&0x01)+((imgbuff_process[n*10+m]>>0)&0x01);
+        sum1[n-45] = sum1[n-45] + whitenum;  //每行白点个数
+     }
+  }
+  
+  if(imgflag==0) //
+  {
+    if( (sum1[0]>60) && (sum1[1]>60) && (sum1[2]>60) && (sum1[3]>60) && (sum1[4]>60) ){//5行正常
+       
+        imgflag=0; 
+        
+    }
+    else{   //检测到断路
+       
+      imgflag=1; 
+      if(runmode==1){ runmode = 0; }
+      else { runmode = 1; }
+    }
+       
+  }
+  else if(imgflag==1)
+  { 
+    if( (sum1[0]>60) && (sum1[1]>60) && (sum1[2]>60) && (sum1[3]>60) && (sum1[4]>60) ) { //5行正常
+      
+      imgflag=0;
+    }
+    
+    else {
+      imgflag=1;
+    }
+  }
+////////////  判定结束  //////////////////////////////////////////  
+  
+}
 

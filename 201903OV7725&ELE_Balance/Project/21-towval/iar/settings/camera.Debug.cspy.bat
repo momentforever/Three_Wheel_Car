@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"D:\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --backend -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
+"D:\Aprogram\IAR\common\bin\cspybat" -f "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --backend -f "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"D:\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" "--debug_file=%~1" --backend -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
+"D:\Aprogram\IAR\common\bin\cspybat" -f "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" "--debug_file=%~1" --backend -f "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
 
 @echo off 
 :end

@@ -5,4 +5,5 @@ extern float Previous_Error[12];
 void Search();
 void get_edge();   
 void sendimg();
+void judgeblack();
 #endif

@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <settings>
+    <DebugChecksum>
+        <Checksum>3110877464</Checksum>
+    </DebugChecksum>
+    <CodeCoverage>
+        <Enabled>_ 0</Enabled>
+    </CodeCoverage>
     <Stack>
         <FillEnabled>0</FillEnabled>
         <OverflowWarningsEnabled>1</OverflowWarningsEnabled>
@@ -11,16 +17,6 @@
         <LimitSize>0</LimitSize>
         <ByteLimit>50</ByteLimit>
     </Stack>
-    <JLinkDriver>
-        <CStepIntDis>_ 0</CStepIntDis>
-        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
-    </JLinkDriver>
-    <DebugChecksum>
-        <Checksum>2794262147</Checksum>
-    </DebugChecksum>
-    <CodeCoverage>
-        <Enabled>_ 0</Enabled>
-    </CodeCoverage>
     <Disassembly>
         <InstrCount>0</InstrCount>
         <MixedMode>1</MixedMode>
@@ -32,6 +28,10 @@
     <CallStack>
         <ShowArgs>0</ShowArgs>
     </CallStack>
+    <JLinkDriver>
+        <CStepIntDis>_ 0</CStepIntDis>
+        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
+    </JLinkDriver>
     <SWOTraceHWSettings>
         <OverrideDefaultClocks>0</OverrideDefaultClocks>
         <CpuClock>72000000</CpuClock>
@@ -142,8 +142,11 @@
         <Count>0</Count>
     </Breakpoints2>
     <Aliases>
-        <A0>_ "E:\Work\Git\Three_Wheel_Car\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A0>
-        <Count>1</Count>
+        <A0>_ "C:\Users\qijihui\Desktop\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A0>
+        <A1>_ "C:\Users\qijihui\Desktop\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A1>
+        <A2>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A2>
+        <A3>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A3>
+        <Count>4</Count>
         <SuppressDialog>0</SuppressDialog>
     </Aliases>
 </settings>

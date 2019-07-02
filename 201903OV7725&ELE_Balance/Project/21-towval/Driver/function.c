@@ -30,11 +30,20 @@ void init()
    led_init(); 
    led_flash(); 
    DisableInterrupts;
+   
    adc_init (ADC1_SE14);// 电池电压采样接口 装换比例为3.3/65535*5.7 
    adc_init (ADC1_SE9);//  PB1 电磁最右电感
    adc_init (ADC1_SE4a);// PE0  电磁最左电感
    
+    adc_init(ADC1_SE5a);//E1  L3  E1红外采集
+    adc_init(ADC1_SE6a);//E2  L4
+    adc_init(ADC1_SE7a);//E3  
+    adc_init(ADC1_SE8);//B0  L5
+   
+   //adc_init(); //红外初始化
+   
    pit_init_ms(PIT0,2); //2ms定时中断
+   
    set_vector_handler(PIT0_VECTORn ,PIT_IRQHandler);
    
    EEPROM_init();
@@ -74,24 +83,24 @@ void init()
 
 void Para_Init()
 {
-  PID_ANGLE.P=0.16;
-  PID_ANGLE.I=0.02;
-  PID_ANGLE.D=0.003;
+  PID_ANGLE.P=0.09;//0.16; //0.172
+  PID_ANGLE.I=0;//0.0008;
+  PID_ANGLE.D=0.0021;//0.0015;
  
-  PID_SPEED.P=0.09;//0.12//0.3;
-  PID_SPEED.I=0.01;//0.028;
+  PID_SPEED.P=0.020;//0.12//0.3;
+  PID_SPEED.I=0.0018;//0.028;
  
-  PID_TURN.P=0.038;//0.028;//0.048;
-  PID_TURN.D=-0.0038;//-0.0028;//0.00; 
+  PID_TURN.P=0.004; //0.032;
+  PID_TURN.D=0.011;//-0.0028;//0.00; 
  
-  PID_AD_TURN.P=0.0015;//0.0031
+  PID_AD_TURN.P=0.0020;//0.0031
   PID_AD_TURN.D=0.0021;//0.03
  
   Fuzzy_Kp=0.005;
   Fuzzy_Kd=0.0005;
  
-  SetSpeed=1.6;//1.3;
-  Set_Angle=-18;  //-28
+  SetSpeed=2;//1.3;
+  Set_Angle=-22;//16;  -10
   
   //Control_Para[0]=SetSpeed;
   Control_Para[0]=PID_ANGLE.P;
@@ -110,12 +119,12 @@ void Para_Init()
 
 void ADC_Init()
 {
-  adc_init(ADC1_SE4a);//E0
+  //adc_init(ADC1_SE4a);//E0
   adc_init(ADC1_SE5a);//E1
   adc_init(ADC1_SE6a);//E2
   adc_init(ADC1_SE7a);//E3
   adc_init(ADC1_SE8);//B0
-  adc_init(ADC1_SE9);//B1
+  //adc_init(ADC1_SE9);//B1
 }
 
 void FTM_IN_Init()
