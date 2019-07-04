@@ -45,6 +45,8 @@ extern float AD_Error;
 extern char CarmeraMiss;
 
 extern int RedSan;
+extern int Dutime;
+extern int yanshi;
 
 
 void Get_Attitude();

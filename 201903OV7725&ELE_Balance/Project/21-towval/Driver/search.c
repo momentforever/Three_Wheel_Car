@@ -203,7 +203,7 @@ void Search()
       {
         CarmeraMiss = true;  //有10行以上全黑行，进入断路，电磁开始工作
         if(lockrun==0)
-        { runmode++;//切换小车状态
+        { runmode=1;//切换小车状态
           if(runmode>1) runmode=0; //0：直立  1：三轮
           lockrun=1; //锁定，不允许改变runmode,直到小车重新看到白线
         }
@@ -314,7 +314,7 @@ else
 
 }
 
-void judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
+char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
 {  
 //   摄像头 和 电磁切换 ，如果是纯摄像头，注释这段程序 ////////////////////////////////////////////
 //      判定中间一些行是否全黑，如果全黑切换到电磁    ////////////////////////////////////////
@@ -323,26 +323,54 @@ void judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
   uint16 sum1[5]; //判定后端5行是否为全黑 
   uint16 whitenum;
   
+  static char flag=0;
+  static char stopcar=0;
+  
   static uint16 imgflag=0; // 0  非断路， 1 是短路
   
-  /* for(n=0;n<5;n++) sum[n]=0;
+   for(n=0;n<5;n++) sum[n]=0;
   
-  for(n=20;n<25;n++) //图像靠前处判定
-  {  for(m=1;m<10;m++) 
+  for(n=18;n<23;n++) //图像靠前处判定
+  {  for(m=50;m<60;m++) 
      { //计算每个字节中白点个数
        whitenum = ((imgbuff_process[n*10+m]>>7)&0x01)+((imgbuff_process[n*10+m]>>6)&0x01)+((imgbuff_process[n*10+m]>>5)&0x01)+((imgbuff_process[n*10+m]>>4)&0x01)+((imgbuff_process[n*10+m]>>3)&0x01)+((imgbuff_process[n*10+m]>>2)&0x01)+((imgbuff_process[n*10+m]>>1)&0x01)+((imgbuff_process[n*10+m]>>0)&0x01);
        sum[n-20] = sum[n-20] + whitenum;
      }
-  }*/
+  }
   
   for(n=0;n<5;n++) sum1[n]=0;
-  for(n=45;n<50;n++) //图像靠后处判定
-  {  for(m=40;m<50;m++) 
+  for(n=18;n<23;n++) //图像靠后处判定
+  {  for(m=60;m<70;m++) 
      {  whitenum = ((imgbuff_process[n*10+m]>>7)&0x01)+((imgbuff_process[n*10+m]>>6)&0x01)+((imgbuff_process[n*10+m]>>5)&0x01)+((imgbuff_process[n*10+m]>>4)&0x01)+((imgbuff_process[n*10+m]>>3)&0x01)+((imgbuff_process[n*10+m]>>2)&0x01)+((imgbuff_process[n*10+m]>>1)&0x01)+((imgbuff_process[n*10+m]>>0)&0x01);
         sum1[n-45] = sum1[n-45] + whitenum;  //每行白点个数
      }
   }
   
+  switch(flag)
+  {
+  case 0:{
+            if(( (sum1[0]<60) && (sum1[1]<60) && (sum1[2]<60) && (sum1[3]<60) && (sum1[4]<60) )&&( (sum[0]<60) && (sum[1]<60) && (sum[2]<60) && (sum[3]<60) && (sum[4]<60) ))
+            {
+               if(runmode==1){  flag=1; SBZ(); runmode = 0; } //三轮便直立
+               else { runmode = 1; flag=2; } //直立便三轮
+               Dutime=0;
+            }
+            return 0;
+         }
+  case 1:{ //停车两秒
+           Dutime++;
+           if(Dutime>500){ flag=2; return 0; }
+           else { LeftMotorOut=0.1; RightMotorOut=0.1; return 1;}
+          }
+  case 2:{  //两秒后重新检测断路
+            Dutime++;
+           if(Dutime>2000){ flag=0; }
+          return 0;
+         }
+  }
+  
+  
+/*  
   if(imgflag==0) //
   {
     if( (sum1[0]>60) && (sum1[1]>60) && (sum1[2]>60) && (sum1[3]>60) && (sum1[4]>60) ){//5行正常
@@ -368,8 +396,25 @@ void judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
     else {
       imgflag=1;
     }
-  }
+  }*/
 ////////////  判定结束  //////////////////////////////////////////  
   
 }
 
+void SBZ() //减速
+{
+  
+   Get_Speed();  
+   
+   while(CarSpeed>0) //判断停车
+  {
+      
+       LeftMotorOut=0.9;
+       RightMotorOut=0.9;
+        Moto_Out();
+        
+        Get_Speed();                                                                                                                                                                                                                   
+  }
+  
+  
+}

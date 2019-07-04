@@ -100,7 +100,7 @@ void Para_Init()
   Fuzzy_Kd=0.0005;
  
   SetSpeed=2;//1.3;
-  Set_Angle=-22;//16;  -10
+  Set_Angle=-21;//16;  -10
   
   //Control_Para[0]=SetSpeed;
   Control_Para[0]=PID_ANGLE.P;

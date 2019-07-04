@@ -11,11 +11,13 @@ uint8 runmode;  //0: 直立跑  1：三轮跑
 uint8 lockrun;  //0:允许改变runmode   1:不允许改变
 char zha=0;    //0,没有遇到障碍物， 1，遇到障碍物
 int time;
+int Dutime; //断路延时
+int yanshi;
 
 void  main(void)
 {  uint8 cc,dd;
-   runmode  = 1; //开始时直立跑 //0: 直立跑  1：三轮跑
-   lockrun = 1; //可以改变状态（当摄像头看到黑时 //0:允许改变runmode   1:不允许改变
+   runmode  = 0; //开始时直立跑 //0: 直立跑  1：三轮跑
+   lockrun = 0; //可以改变状态（当摄像头看到黑时 //0:允许改变runmode   1:不允许改变
    DELAY_MS(100);
    init();
    while(1)
@@ -32,7 +34,7 @@ void  main(void)
       {
         get_edge();
         
-        if(lockrun==0){judgeblack(); }//切换
+       
         
         new_img=0;
         Variable_update();
@@ -51,6 +53,7 @@ void  main(void)
 void PIT_IRQHandler()  //2ms一次中断
 {
   static uint8 flag_100ms,cnt=0;
+  static char STcar=0; //三轮便直立刹车
   PIT_Flag_Clear(PIT0);       //清中断标志位
   RunTime=RunTime+0.002;
   
@@ -58,6 +61,9 @@ void PIT_IRQHandler()  //2ms一次中断
   {
     int redflag;
     redflag=Red_Check();
+    
+     if(lockrun==0){STcar=judgeblack(); }//切换
+     
           if(!redflag){ //检测障碍物判断
            
                   if( RunTime < 2.0f )
@@ -93,7 +99,8 @@ void PIT_IRQHandler()  //2ms一次中断
                    Get_Speed();
                    Speed_Control();
                    Speed_Control_Output();
-                   Moto_Out_Control();
+                   
+                   if(STcar==0){ Moto_Out_Control();}
           }
           
           else if(redflag) {
