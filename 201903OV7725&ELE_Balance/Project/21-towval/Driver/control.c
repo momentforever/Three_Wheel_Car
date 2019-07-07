@@ -93,6 +93,7 @@ extern uint8 runmode;  //0: 直立跑  1：三轮跑
 extern int time;
 
 int RedSan; //红外，三轮模式
+int RedZhi;
 
 void Get_Attitude()
 {
@@ -612,17 +613,23 @@ char Red_Check()
   for(j=0;j<10;j++){
     
     if(runmode){ red=red + adc_once(ADC1_SE5a,ADC_12bit);}
-    else{ } 
+    else{ red=red + adc_once(ADC1_SE6a ,ADC_12bit); } 
   }
   red=red/10;
  // red=(6762/(red-9))-4;
-  RedSan=red;
+  
+ 
   if(runmode){  //三轮
+    
+    RedSan=red;
     if(red>SL) { return 1; }
     else {return 0;}
+   
   }
   else {  //直立
-  
+     
+     RedZhi=red;
+     return 0;
   }
 } 
 

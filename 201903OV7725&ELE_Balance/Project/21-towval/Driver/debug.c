@@ -167,8 +167,8 @@ void OLED_Draw_UI()  //画出界面
     OLED_PrintValueF(72, 3,Distance,4);
     OLED_P6x8Str(0,4,"RunTime");
     OLED_PrintValueF(72, 4,RunTime,4);
-    OLED_P6x8Str(0,5,"Average_Spd");
-    OLED_PrintValueF(72, 5,AverageSpeed,4);
+    OLED_P6x8Str(0,5,"RedZhi");
+    OLED_PrintValueF(72, 5,RedZhi,4);
     OLED_P6x8Str(0,6,"RedSan");
     OLED_PrintValueF(72, 6,RedSan,4); //红外三轮
     OLED_P6x8Str(0,7,"CarmeraMiss");

@@ -203,7 +203,7 @@ void Search()
       {
         CarmeraMiss = true;  //有10行以上全黑行，进入断路，电磁开始工作
         if(lockrun==0)
-        { runmode=1;//切换小车状态
+        { runmode++;//切换小车状态
           if(runmode>1) runmode=0; //0：直立  1：三轮
           lockrun=1; //锁定，不允许改变runmode,直到小车重新看到白线
         }
@@ -359,12 +359,12 @@ char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
          }
   case 1:{ //停车两秒
            Dutime++;
-           if(Dutime>500){ flag=2; return 0; }
+           if(Dutime>500){ flag=2;  Dutime=0; return 0;  }
            else { LeftMotorOut=0.1; RightMotorOut=0.1; return 1;}
           }
   case 2:{  //两秒后重新检测断路
             Dutime++;
-           if(Dutime>2000){ flag=0; }
+           if(Dutime>1000){ flag=0; }
           return 0;
          }
   }
