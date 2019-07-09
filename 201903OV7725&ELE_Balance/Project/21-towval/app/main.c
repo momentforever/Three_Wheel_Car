@@ -17,7 +17,7 @@ int yanshi;
 void  main(void)
 {  uint8 cc,dd;
    runmode  = 0; //开始时直立跑 //0: 直立跑  1：三轮跑
-   lockrun = 1; //可以改变状态（当摄像头看到黑时 //0:允许改变runmode   1:不允许改变
+   lockrun = 0; //可以改变状态（当摄像头看到黑时 //0:允许改变runmode   1:不允许改变
    DELAY_MS(100);
    init();
    while(1)

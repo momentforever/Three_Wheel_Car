@@ -665,8 +665,8 @@ char BiZhang()
          if(CarSpeed>0)
          {
            
-            RightMotorOut=0.9;//+PID_AD_TURN.OUT;   
-            LeftMotorOut=0.9;// -PID_AD_TURN.OUT;
+            RightMotorOut=0.99;//+PID_AD_TURN.OUT;   
+            LeftMotorOut=0.99;// -PID_AD_TURN.OUT;
          }
          else
          {
@@ -744,7 +744,7 @@ char go_block()
        }
        case 5: {  //ÓÒ×ª
                right_turn();
-               if(time>=TURN_TIME*2.5) { turn_num=6;time=0;}
+               if(time>=TURN_TIME*2.2) { turn_num=6;time=0;}
                return 1;
        }
        case 6: {  //Í£³µ
@@ -781,8 +781,8 @@ void right_turn(){
 }
 
 void go_straight(){
-    LeftMotorOut =  -0.15;
-    RightMotorOut = -0.15;
+    LeftMotorOut =  -0.15f;
+    RightMotorOut = -0.15f;
 }
 
 void go_stop(){

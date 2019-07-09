@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>332143651</Checksum>
+        <Checksum>1427901748</Checksum>
     </DebugChecksum>
     <CodeCoverage>
         <Enabled>_ 0</Enabled>
@@ -144,9 +144,11 @@
     <Aliases>
         <A0>_ "C:\Users\qijihui\Desktop\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A0>
         <A1>_ "C:\Users\qijihui\Desktop\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A1>
-        <A2>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A2>
-        <A3>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A3>
-        <Count>4</Count>
+        <A2>_ "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A2>
+        <A3>_ "D:\三轮程序\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A3>
+        <A4>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Lib\CMSIS\inc\core_cm4.h" ""</A4>
+        <A5>_ "G:\Three_Wheel_Car_Origin\201903OV7725&amp;ELE_Balance\Project\21-towval\app\main.c" ""</A5>
+        <Count>6</Count>
         <SuppressDialog>0</SuppressDialog>
     </Aliases>
 </settings>
