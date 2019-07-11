@@ -48,6 +48,7 @@ extern int RedSan;
 extern int RedZhi;
 extern int Dutime;
 extern int yanshi;
+extern int turn_num;
 
 
 void Get_Attitude();
@@ -67,12 +68,15 @@ void My_Push_And_Pull(float *buff,int len,float newdata);
 float  Middle_Err_Filter(float middle_err);  
 float  Turn_Out_Filter(float turn_out);
 char Red_Check();
-char BiZhang();
 char go_block();
+char Ramp();
 
 void left_turn();
 void right_turn();
 void go_straight();
 void go_stop();
 int judge_ad();
+void go_back();
+void brake_car();
+
 #endif

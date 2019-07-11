@@ -90,17 +90,17 @@ void Para_Init()
   PID_SPEED.P=0.020;//0.12//0.3;
   PID_SPEED.I=0.0018;//0.028;
  
-  PID_TURN.P=0.004; //0.032;
-  PID_TURN.D=0.011;//-0.0028;//0.00; 
+  PID_TURN.P=0.0; //0.032;
+  PID_TURN.D=0.0;//-0.0028;//0.00; 
  
-  PID_AD_TURN.P=0.0020;//0.0031
+  PID_AD_TURN.P=0.0032;//0.0031
   PID_AD_TURN.D=0.0021;//0.03
  
   Fuzzy_Kp=0.005;
   Fuzzy_Kd=0.0005;
  
   SetSpeed=2;//1.3;
-  Set_Angle=-21;//16;  -10
+  Set_Angle=20;//16;  -10
   
   //Control_Para[0]=SetSpeed;
   Control_Para[0]=PID_ANGLE.P;

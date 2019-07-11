@@ -365,7 +365,7 @@ char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
           }
   case 2:{  //两秒后重新检测断路
             Dutime++;
-           if(Dutime>1000){ flag=0; Dutime=0;}
+           if(Dutime>2000){ flag=0; Dutime=0;}
           return 0;
          }
   }
