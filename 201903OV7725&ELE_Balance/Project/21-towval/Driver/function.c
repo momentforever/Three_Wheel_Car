@@ -93,7 +93,7 @@ void Para_Init()
  // PID_TURN.P=0.008; //0.032;
  // PID_TURN.D=0.011;//-0.0028;//0.00; 
  
-  PID_AD_TURN.P=0.0042;//0.0031
+  PID_AD_TURN.P=0.0052;//0.0031
   PID_AD_TURN.D=0.0026;//0.03
  
   Fuzzy_Kp=0.005;

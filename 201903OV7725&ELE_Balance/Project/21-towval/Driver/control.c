@@ -90,6 +90,7 @@ extern unsigned int leftspeed, rightspeed;
 
 extern uint8 runmode; //0: 直立跑  1：三轮跑
 extern int time;
+extern int zha;
 
 int RedSan; //红外，三轮模式
 int RedZhi;
@@ -436,12 +437,13 @@ void Direction_ADControl_zl()
     {
       PID_AD_TURN.OUT = -0.17;
     } //100ms后转向
-    if ((leftM == 1) && (Mh > 70))
+    //Mh延时时间
+    if ((leftM == 1) && (Mh > 40))//70
     {
       PID_AD_TURN.OUT = 0.17;
     }
-
-    if (Mh > 250)
+//mh转向结束时间，也适当减少
+    if (Mh > 200)//250
     { //250ms后转向完成
 
       Mh = 0;
@@ -461,16 +463,16 @@ void Direction_ADControl_zl()
   {
 
     Mh++;
-
-    if ((rightM == 4) && (Mh < 100))
+//mh出环时间0-100
+    if ((rightM == 4) && (Mh < 100))//100
     {
       PID_AD_TURN.OUT = -0.17;
     } //右拐100ms
-    else if ((leftM == 4) && (Mh < 100))
+    else if ((leftM == 4) && (Mh < 80))//100
     {
       PID_AD_TURN.OUT = 0.17;
     }
-    else if ((100 <= Mh) && (Mh < 1200))
+    else if ((80 <= Mh) && (Mh < 1200))
     { //按照正常直道走 200ms
     }
     else if (1200 <= Mh)
@@ -488,6 +490,12 @@ void Direction_ADControl_zl()
   }
 
   /**********出环操作**********/
+  if(rightM==0&&leftM==0){
+    zha=0;
+  }
+  if(rightM!=0||leftM!=0){
+    zha=3;
+  }
 }
 
 /********************方向控制量计算***************/
@@ -826,7 +834,7 @@ int Ramp()
   }
   case 1:
   { //慢速2
-    PID_SPEED.OUT = -0.15f;
+    PID_SPEED.OUT = -0.2f;
     if (Car_Angle >= -5)
     {
       turn_num = 0;
@@ -842,7 +850,7 @@ int go_block()
   time++;
   static char turn_num = 0;
 /*
-  if (Car_Angle >= 15)
+  if (judgeramp()==0)
   {
     return 2;
   }
@@ -913,7 +921,7 @@ int go_block()
   case 6:
   { //直行
     go_straight();
-    if (time >= TIME * 5.5)//5.7
+    if (time >= TIME * 6)//5.5
     {
       turn_num = 7;
       time = 0;
@@ -933,7 +941,7 @@ int go_block()
   case 8:
   { //右转
     right_turn();
-    if (time >= TIME * 1.6)
+    if (time >= TIME * 1.5)
     {
       turn_num = 9;
       time = 0;

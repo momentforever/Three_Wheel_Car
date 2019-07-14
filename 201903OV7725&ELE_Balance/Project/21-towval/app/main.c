@@ -9,7 +9,7 @@
 
 uint8 runmode; //0: 直立跑  1：三轮跑
 uint8 lockrun; //0:允许改变runmode   1:不允许改变
-char zha = 0;  //0,没有遇到障碍物， 1，遇到障碍物
+int zha = 0;   //0,没有遇到障碍物， 1，遇到障碍物
 int time;
 int Dutime; //断路延时
 int yanshi;
@@ -73,6 +73,7 @@ void PIT_IRQHandler() //2ms一次中断
     // Speed_Control();  //100ms进行一次速度控制
     SpeedCount = 0;
   }
+
   cnt++;
   if (cnt == 1) //4ms运行一次
   {
@@ -101,7 +102,7 @@ void PIT_IRQHandler() //2ms一次中断
     {
       zha = 2;
     }
-    PID_SPEED.OUT = 0.2;
+    PID_SPEED.OUT = 0.23;
     time = 0;
     Moto_Out_Control();
   }
@@ -116,6 +117,10 @@ void PIT_IRQHandler() //2ms一次中断
     zha = Ramp();
     Moto_Out_Control();
   }
-
+  else if (zha == 3)
+  {
+    PID_SPEED.OUT = 0.2f;
+    Moto_Out_Control();
+  }
   Moto_Out();
 }
