@@ -45,8 +45,11 @@ extern float AD_Error;
 extern char CarmeraMiss;
 
 extern int RedSan;
+extern int RedZhi;
 extern int Dutime;
 extern int yanshi;
+
+extern int turn_num;
 
 
 void Get_Attitude();
@@ -65,13 +68,18 @@ float My_Slope_Calculate(uint8 begin,uint8 end,float *p);
 void My_Push_And_Pull(float *buff,int len,float newdata);
 float  Middle_Err_Filter(float middle_err);  
 float  Turn_Out_Filter(float turn_out);
-char Red_Check();
-char BiZhang();
-char go_block();
+int Red_Check();
+int BiZhang();
+int go_block();
+
+int Ramp();
 
 void left_turn();
 void right_turn();
 void go_straight();
 void go_stop();
+void brake_car();
+void go_back();
 int judge_ad();
+int judgeramp();
 #endif

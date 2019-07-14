@@ -7,6 +7,7 @@ uint16 edgposition[CAMERA_H];
 
 
 uint16 cont;
+#define NORMAL_NUM 40
 
 extern uint8 runmode;  //0: 直立跑  1：三轮跑
 extern uint8 lockrun;  //0:允许改变runmode   1:不允许改变
@@ -203,7 +204,7 @@ void Search()
       {
         CarmeraMiss = true;  //有10行以上全黑行，进入断路，电磁开始工作
         if(lockrun==0)
-        { runmode=1;//切换小车状态
+        { runmode++;//切换小车状态
           if(runmode>1) runmode=0; //0：直立  1：三轮
           lockrun=1; //锁定，不允许改变runmode,直到小车重新看到白线
         }
@@ -349,7 +350,7 @@ char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
   switch(flag)
   {
   case 0:{
-            if(( (sum1[0]<60) && (sum1[1]<60) && (sum1[2]<60) && (sum1[3]<60) && (sum1[4]<60) )&&( (sum[0]<60) && (sum[1]<60) && (sum[2]<60) && (sum[3]<60) && (sum[4]<60) ))
+            if(( (sum1[0]<NORMAL_NUM) && (sum1[1]<NORMAL_NUM) && (sum1[2]<NORMAL_NUM) && (sum1[3]<NORMAL_NUM) && (sum1[4]<NORMAL_NUM) )&&( (sum[0]<NORMAL_NUM) && (sum[1]<NORMAL_NUM) && (sum[2]<NORMAL_NUM) && (sum[3]<NORMAL_NUM) && (sum[4]<NORMAL_NUM) ))
             {
                if(runmode==1){  flag=1; SBZ(); runmode = 0; } //三轮便直立
                else { runmode = 1; flag=2; } //直立便三轮
@@ -359,12 +360,12 @@ char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
          }
   case 1:{ //停车两秒
            Dutime++;
-           if(Dutime>500){ flag=2; return 0; }
+           if(Dutime>500){ flag=2;  Dutime=0; return 0;  }
            else { LeftMotorOut=0.1; RightMotorOut=0.1; return 1;}
           }
   case 2:{  //两秒后重新检测断路
             Dutime++;
-           if(Dutime>2000){ flag=0; }
+           if(Dutime>2000){ flag=0; Dutime=0;}
           return 0;
          }
   }
@@ -400,7 +401,6 @@ char judgeblack()  //摄像头全黑判定，如果全黑，切换至电磁工作
 ////////////  判定结束  //////////////////////////////////////////  
   
 }
-
 void SBZ() //减速
 {
   

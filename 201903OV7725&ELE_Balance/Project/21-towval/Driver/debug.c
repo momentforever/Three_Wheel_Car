@@ -57,6 +57,7 @@ void Variable_update()
   Variable[9]= PID_SPEED.OUT;
   Variable[10]= PID_TURN.OUT;
   Variable[15]=RunTime;
+  Variable[16]=turn_num;
 }
 
 
@@ -167,8 +168,8 @@ void OLED_Draw_UI()  //画出界面
     OLED_PrintValueF(72, 3,Distance,4);
     OLED_P6x8Str(0,4,"RunTime");
     OLED_PrintValueF(72, 4,RunTime,4);
-    OLED_P6x8Str(0,5,"Average_Spd");
-    OLED_PrintValueF(72, 5,AverageSpeed,4);
+    OLED_P6x8Str(0,5,"turnnum");
+    OLED_PrintValueF(72, 5,turn_num,4);
     OLED_P6x8Str(0,6,"RedSan");
     OLED_PrintValueF(72, 6,RedSan,4); //红外三轮
     OLED_P6x8Str(0,7,"CarmeraMiss");
