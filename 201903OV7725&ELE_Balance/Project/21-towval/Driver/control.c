@@ -34,7 +34,7 @@ float SpeedControlIntegral = 0, Hill_Slow_Ratio;
 float Set_Angle; //加速前倾角度
 int SpeedCount = 1;
 int Speed_Filter_Times = 25; //速度平滑输出
-float CarSpeed = 0, ControlSpeed = 0, AverageSpeed, SetSpeed = 0.4, Distance;
+float CarSpeed = 0, ControlSpeed = 0, AverageSpeed, SetSpeed = 0.4, Distance=0;
 //方向类变量
 float DirectionControlOutNew;
 float DirectionControlOutOld;
@@ -96,14 +96,24 @@ int RedSan; //红外，三轮模式
 int RedZhi;
 
 int turn_num;
-
+/****************************************
+*函数名： Get_Attitude()
+*功能：陀螺仪，x、y、z值获得
+*
+****************************************/
 void Get_Attitude()
 {
   Acc_Z = Get_Z_Acc();
   Gyro_X = Get_X_Gyro();
   Gyro_Y = Get_Y_Gyro();
 }
-//******Kalman滤波******//
+
+
+/************************************
+*函数名：Kalman_Filter(float angle_m, float gyro_m)
+*功能：Kalman滤波，角度滤波
+*
+************************************/
 //-------------------------------------------------------
 static float Q_angle = 0.001, Q_gyro = 0.001, R_angle = 5, dt = 0.004;
 //Q增大，动态响应增大
@@ -149,15 +159,22 @@ void Kalman_Filter(float angle_m, float gyro_m)
   Angle_Speed = gyro_m - q_bias;
 }
 
-//角度计算与滤波
+/***********************************************
+*函数名： Angle_Calculate()
+*功能：获得变化角度
+*
+*    Angle ：车子前倾 or 后仰的角度
+*   Set_Angle ：车子平衡时的角度
+***********************************************/
 void Angle_Calculate()
 {
 
   float ratio = 0.048;
+  Acc_Offset=0;
 
   if (runmode == 0)
   { //直立
-    Angle = (Acc_Z - Acc_Offset) * 180.0 / (Acc_Max - Acc_Min) + Set_Angle;
+    Angle = (Acc_Z - Acc_Offset) * 180.0 / (Acc_Max - Acc_Min) + Set_Angle;   //
   }
   else if (runmode == 1)
   { //三轮
@@ -167,7 +184,13 @@ void Angle_Calculate()
 
   Kalman_Filter(Angle, Angle_Speed); //调用卡尔曼滤波函数
 }
-//角度控制函数
+/**********************************************
+*函数名：Angle_Control()
+*功能：计算角度PID输出
+*
+*  输出：PID_ANGLE.OUT
+**********************************************/
+
 void Angle_Control()
 {
   PID_ANGLE.pout = PID_ANGLE.P * Car_Angle;
@@ -178,6 +201,13 @@ void Angle_Control()
   }
   PID_ANGLE.OUT = PID_ANGLE.pout + PID_ANGLE.dout;
 }
+/********************************************
+*函数名：Get_Speed()
+*功能：编码器获取车速
+*
+* 输出： Distance 行驶距离
+         CarSpeed  车速
+*********************************************/
 
 void Get_Speed() //5ms执行一次
 {
@@ -233,7 +263,12 @@ void Get_Speed() //5ms执行一次
   CarSpeed = (qd1_result + qd2_result) * 0.05;    //*250.0/6100.0;    //求出车速转换为M/S   N/2 /500 * L * T = N/2 /500 *0.2 * 250 = N /1000 * 50 = N * 0.05
 }
 
-//速度控制量计算
+/***************************************************
+*函数名：Speed_Control(void)、Speed_Control_Output(void)
+*功能：速度PID控制， 不好
+*   输出： PID_SPEED.OUT
+*
+***************************************************/
 void Speed_Control(void)
 {
 
@@ -283,7 +318,12 @@ void Speed_Control_Output(void)
     SpeedCount = SpeedCount + 1;
   }
 }
-
+/***************************************
+*函数名：Direction_ADControl_zl()
+*功能：转向控制
+*
+*输出： PID_AD_TURN.OUT 
+***************************************/
 void Direction_ADControl_zl()
 {
   int adc_sum[8], j, zy;
@@ -326,14 +366,14 @@ void Direction_ADControl_zl()
   
   if(AD1_Normalized >100)  //右欧姆换
   {
-    ////////////////进环操作///////////////
+    ////////////////进环判断操作///////////////
     
-    if( (80<AD3_Normalized) && ( rightM==0)) 
+    if( (80<AD3_Normalized) && ( rightM==0))  
     {
        Ytime++;
     }
     
-    if(( rightM==0) && (Ytime>=20))
+    if(( rightM==0) && (Ytime>=20))  //连续20次一边大于100，一边大于80
     {
       rightM=2; Ytime=0;
     }
@@ -342,14 +382,14 @@ void Direction_ADControl_zl()
     
        if(Mh==0){ Mh=0; rightM=1; }
     }
-    ////////////////进环操作////////////////
-    ////////////////出环操作////////////////
+    ////////////////进环判断操作////////////////
+    ////////////////出环判断操作////////////////
     if((AD3_Normalized ==102) && ( rightM==3))
     {
       rightM=4; Mh=0;
     }
     
-    ////////////////出环操作////////////////
+    ////////////////出环判断操作////////////////
     
     //if(Mh==0){ Mh=1;}
   }
@@ -362,7 +402,7 @@ void Direction_ADControl_zl()
   //*///////////////左欧姆换////////////////
   if (AD3_Normalized > 100) //右欧姆换
   {
-    ////////////////进环操作///////////////
+    ////////////////进环判断操作///////////////
 
     if ((80 < AD1_Normalized) && (leftM == 0))
     {
@@ -384,15 +424,15 @@ void Direction_ADControl_zl()
         leftM = 1;
       }
     }
-    ////////////////进环操作////////////////
-    ////////////////出环操作////////////////
+    ////////////////进环判断操作////////////////
+    ////////////////出环判断操作////////////////
     if ((AD1_Normalized == 102) && (leftM == 3))
     {
       leftM = 4;
       Mh = 0;
     }
 
-    ////////////////出环操作////////////////
+    ////////////////出环判断操作////////////////
 
     //if(Mh==0){ Mh=1;}
   }
@@ -438,7 +478,7 @@ void Direction_ADControl_zl()
       PID_AD_TURN.OUT = -0.17;
     } //100ms后转向
     //Mh延时时间
-    if ((leftM == 1) && (Mh > 40))//70
+    if ((leftM == 1) && (Mh > 30))//40//70
     {
       PID_AD_TURN.OUT = 0.17;
     }
@@ -468,14 +508,14 @@ void Direction_ADControl_zl()
     {
       PID_AD_TURN.OUT = -0.17;
     } //右拐100ms
-    else if ((leftM == 4) && (Mh < 80))//100
+    else if ((leftM == 4) && (Mh < 70))//80//100
     {
       PID_AD_TURN.OUT = 0.17;
     }
-    else if ((80 <= Mh) && (Mh < 1200))
+    else if ((70 <= Mh) && (Mh < 1000))
     { //按照正常直道走 200ms
     }
-    else if (1200 <= Mh)
+    else if (1000 <= Mh)
     { //300ms后恢复欧拇环判断初始标志
       Mh = 0;
       if (rightM == 4)
@@ -490,17 +530,22 @@ void Direction_ADControl_zl()
   }
 
   /**********出环操作**********/
-  if(rightM==0&&leftM==0){
+  if(rightM==0&&leftM==0&&zha==3){
     zha=0;
   }
-  if(rightM!=0||leftM!=0){
+  if((rightM!=0||leftM!=0)&&zha==0){
     zha=3;
   }
 }
 
 /********************方向控制量计算***************/
 
-//电机pwm值输出
+/********************************************
+*函数名：Moto_Out_Control()
+*功能：电机pwm值输出计算
+*    输出：LeftMotorOut
+           RightMotorOut
+********************************************/
 void Moto_Out_Control()
 {
   static float Forward_Safe_Angle = 5; //前倾的安全角度
@@ -562,7 +607,11 @@ if(Stop)                                //如果停止则电机不输出
  }
 */
 }
-
+/*********************************************
+*函数名：Moto_Out()
+*功能：点击PWM输出   不需要更改
+*
+*********************************************/
 void Moto_Out()
 {
 
@@ -817,6 +866,12 @@ int BiZhang()
   return 1;
 }
 
+/*
+*@author:lzt
+*@description: 当遇到爬坡所执行的操作
+*@return 0 执行完全部操作
+*@return 2 没有执行完全部操作
+ */
 int Ramp()
 {
   switch (turn_num)
@@ -824,8 +879,8 @@ int Ramp()
   case 0:
   { //加速
     time++;
-    PID_SPEED.OUT = 0.3f;
-    if (Car_Angle < 0 || time >= 500)
+    PID_SPEED.OUT = 0.27f;
+    if (Car_Angle < 5 || time >= 500)
     {
       time = 0;
       turn_num = 1;
@@ -834,7 +889,7 @@ int Ramp()
   }
   case 1:
   { //慢速2
-    PID_SPEED.OUT = -0.2f;
+    PID_SPEED.OUT = -0.15f;
     if (Car_Angle >= -5)
     {
       turn_num = 0;
@@ -844,7 +899,12 @@ int Ramp()
   }
   }
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的操作
+*@return 0 所有操作执行完毕
+*@return 1 没执行完所有操作
+ */
 int go_block()
 {
   time++;
@@ -860,6 +920,7 @@ int go_block()
   case 0:
   { //刹车
     brake_car();
+    //time >= 500 保护操作
     if (CarSpeed <= 0 || time >= 500)
     {
       turn_num = 1;
@@ -903,7 +964,7 @@ int go_block()
     left_turn();
     if (time >= TIME&&RedSan<=1000)
     {
-      turn_num = 5;
+      turn_num = 6;
       time = 0;
     }
     return 1;
@@ -923,7 +984,7 @@ int go_block()
     go_straight();
     if (time >= TIME * 6)//5.5
     {
-      turn_num = 7;
+      turn_num = 8;
       time = 0;
     }
     return 1;
@@ -941,9 +1002,9 @@ int go_block()
   case 8:
   { //右转
     right_turn();
-    if (time >= TIME * 1.5)
+    if (time >= TIME * 1.2)
     {
-      turn_num = 9;
+      turn_num = 10;
       time = 0;
     }
     return 1;
@@ -963,7 +1024,7 @@ int go_block()
     go_straight();
     if ((judge_ad() == 1) && (time >= TIME * 3))
     {
-      turn_num = 11;
+      turn_num = 13;
       time = 0;
     }
     return 1;
@@ -983,7 +1044,7 @@ int go_block()
     left_turn();
     if (time >= TIME)
     {
-      turn_num = 13;
+      turn_num = 14;
       time = 0;
     }
     return 1;
@@ -1001,31 +1062,48 @@ int go_block()
   }
   }
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的左转函数
+ */
 void left_turn()
 {
-  LeftMotorOut = -0.15f;
-  RightMotorOut = 0.15f;
+  LeftMotorOut = -0.14f;
+  RightMotorOut = 0.14f;
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的右转函数
+ */
 void right_turn()
 {
-  LeftMotorOut = 0.18f;
-  RightMotorOut = -0.18f;
+  LeftMotorOut = 0.14f;
+  RightMotorOut = -0.14f;
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的直行函数
+ */
 void go_straight()
 {
-  LeftMotorOut = -0.15f;
-  RightMotorOut = -0.15f;
+  LeftMotorOut = -0.125f;
+  RightMotorOut = -0.125f;
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的停车函数
+ */
 void go_stop()
 {
   LeftMotorOut = 0.0f;
   RightMotorOut = 0.0f;
 }
-
+/*
+*@author:lzt
+*@description:在避障时判断结束直行的的函数
+*@return 0 没有找到赛道的磁感值
+*@return 1 找到了磁感值
+ */
 int judge_ad()
 {
   if (AD3_Value >= 4000 && AD1_Value <= 1000)
@@ -1033,13 +1111,19 @@ int judge_ad()
   else
     return 0;
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的倒车函数
+ */
 void go_back()
 {
-  LeftMotorOut = 0.15f- PID_AD_TURN.OUT;
-  RightMotorOut = 0.15f+ PID_AD_TURN.OUT;
+  LeftMotorOut = 0.12f - PID_AD_TURN.OUT;
+  RightMotorOut = 0.12f + PID_AD_TURN.OUT;
 }
-
+/*
+*@author:lzt
+*@description:遇到障碍物执行的刹车函数
+ */
 void brake_car()
 {
   LeftMotorOut = 0.99f;
@@ -1047,8 +1131,10 @@ void brake_car()
 }
 
 /*
-return 1 无斜坡
-return 0 有斜坡
+*@author:lzt
+*@description:判断是否为斜坡
+*@return 1 无斜坡
+*@return 0 有斜坡
  */
 int judge_ramp_num = 1;
 int judgeramp()

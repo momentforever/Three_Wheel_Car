@@ -92,35 +92,36 @@ void PIT_IRQHandler() //2ms一次中断
   Speed_Control();
   Speed_Control_Output();
 
-  if (zha == 0)
+  if (zha == 0)   //正常赛道
   {
-    if (Red_Check() && (Car_Angle < 10))
+    if (Red_Check() && (Car_Angle < 10))   //红外检测到障碍物，且不是坡道
     {
-      zha = 1;
+      zha = 1;   //跳到避障
     }
-    if (judgeramp() == 1)
+    if (judgeramp() == 1)  //爬坡
     {
       zha = 2;
     }
-    PID_SPEED.OUT = 0.23;
+    PID_SPEED.OUT = 0.23;  
     time = 0;
     Moto_Out_Control();
   }
 
-  else if (zha == 1)
+  else if (zha == 1)  //避障
   {
     Red_Check();
     zha = go_block();
   }
-  else if (zha == 2)
+  else if (zha == 2)  //爬坡
   {
     zha = Ramp();
     Moto_Out_Control();
   }
-  else if (zha == 3)
+  else if (zha == 3)  //过欧姆环
   {
-    PID_SPEED.OUT = 0.2f;
+    PID_SPEED.OUT = 0.2f;  //过欧姆环速度
     Moto_Out_Control();
   }
+  
   Moto_Out();
 }

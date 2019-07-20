@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "D:\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --backend -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
+& "D:\Aprogram\IAR\common\bin\cspybat" -f "C:\Users\qijihui\Desktop\程序\程序\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --backend -f "C:\Users\qijihui\Desktop\程序\程序\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
 }
 else
 {
-& "D:\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --debug_file=$debugfile --backend -f "E:\Work\Git\Three_Wheel_Car_Origin\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
+& "D:\Aprogram\IAR\common\bin\cspybat" -f "C:\Users\qijihui\Desktop\程序\程序\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\qijihui\Desktop\程序\程序\201903OV7725&ELE_Balance\Project\21-towval\iar\settings\camera.Debug.driver.xcl" 
 }
